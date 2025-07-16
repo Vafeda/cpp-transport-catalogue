@@ -1,53 +1,49 @@
 #pragma once
 #include "geo.h"
-#include <vector>
 #include <deque>
-#include <string>
+#include <optional>
 #include <set>
-#include <unordered_set>
+#include <string>
 #include <unordered_map>
+#include <unordered_set>
+#include <vector>
 
 namespace transport_catalogue {
 	struct StopStation {
-		std::string stop_station_name;
+		std::string name;
 		detail::Coordinates coordinates;
 	};
 
 	struct Bus {
-		std::string bus_name;
-		std::vector<StopStation*> route;
+		std::string name;
+		std::vector<const StopStation*> route;
 	};
 
 	struct RouteInfo {
-		int stops_count;
-		int unique_stops_count;
+		size_t stops_count;
+		size_t unique_stops_count;
 		double route_length;
 		bool route_exists;
 	};
 
-	struct StopStationInfo {
-		std::set<std::string> routes_in_stop;
-		bool stop_station_exists;
-	};
-
 	class TransportCatalogue {
 	public:
-		void SetStopStation(std::string id, std::string description);
-		void SetBus(std::string id, std::string description);
+		void SetStopStation(const std::string& id, const detail::Coordinates coordinates);
+		void SetBus(const std::string& id, const std::vector<std::string_view>& route);
 
-		StopStation* GetStopStation(std::string id) const;
-		Bus* GetBus(std::string id) const;
+		const StopStation* GetStopStation(std::string_view id) const;
+		const Bus* GetBus(std::string_view id) const;
 
-		RouteInfo GetBusInfo(std::string id) const;
-		StopStationInfo GetStopStationInfo(std::string id) const;
+		std::optional<RouteInfo> GetBusInfo(std::string_view id) const;
+		const std::set<std::string_view>* GetStopStationInfo(std::string_view id) const;
 
 	private:
 		std::deque<StopStation> stop_stations_;
-		std::unordered_map<std::string, StopStation*> hash_table_stop_stations_;
+		std::unordered_map<std::string_view, const StopStation*> hash_table_stop_stations_;
 
 		std::deque<Bus> bus_routes_;
-		std::unordered_map<std::string, Bus*> hash_table_bus_routes_;
+		std::unordered_map<std::string_view, const Bus*> hash_table_bus_routes_;
 
-		std::unordered_map<StopStation*, std::set<std::string>> hash_table_routes_in_stop_;
+		std::unordered_map<const StopStation*, std::set<std::string_view>> hash_table_routes_in_stop_;
 	};
 }

@@ -104,12 +104,18 @@ void input_reader::InputReader::ParseLine(std::string_view line) {
 }
 
 void input_reader::InputReader::ApplyCommands([[maybe_unused]] TransportCatalogue& catalogue) const {
-    for (auto it = commands_.begin(); it < commands_.end(); ++it) {
-        if (it->command == "Stop") {
-            catalogue.SetStopStation(it->id, it->description);
+    std::vector<CommandDescription> sorted_commands = commands_;
+    std::sort(sorted_commands.begin(), sorted_commands.end(),
+        [](const CommandDescription& lhs, const CommandDescription& rhs) {
+            return lhs.command > rhs.command;
+        });
+
+    for (auto it_sorted_commands = sorted_commands.begin(); it_sorted_commands < sorted_commands.end(); ++it_sorted_commands) {
+        if (it_sorted_commands->command == "Stop") {
+            catalogue.SetStopStation(it_sorted_commands->id, ParseCoordinates(it_sorted_commands->description));
         }
-        else if (it->command == "Bus") {
-            catalogue.SetBus(it->id, it->description);
+        else if (it_sorted_commands->command == "Bus") {
+            catalogue.SetBus(it_sorted_commands->id, ParseRoute(it_sorted_commands->description));
         }
     }
 }
