@@ -16,24 +16,26 @@ void stat_reader::ParseAndPrintStat(const TransportCatalogue& transport_catalogu
     std::string key = std::string(request.substr(middle_pos + 1));
 
     if (command == "Stop") {
-        stat_reader::PrintStopStat(transport_catalogue.GetStopStationInfo(key), request, output);
+        if (!transport_catalogue.GetStopStation(key)) {
+            output << request.data() << ": not found" << std::endl;
+        }
+        else {
+            stat_reader::PrintStopStat(transport_catalogue.GetStopStationInfo(key), request, output);
+        }
     }
     else if (command == "Bus") {
         stat_reader::PrintBusStat(transport_catalogue.GetBusInfo(key), request, output);
     }
 }
 
-void stat_reader::PrintStopStat(std::optional<std::set<std::string_view>> set_of_route_in_stop, std::string_view request,
+void stat_reader::PrintStopStat(const std::set<std::string_view>& set_of_route_in_stop, std::string_view request,
     std::ostream& output) {
-    if (!set_of_route_in_stop) {
-        output << request.data() << ": not found" << std::endl;
-    }
-    else if (set_of_route_in_stop.value().empty()) {
+    if (set_of_route_in_stop.empty()) {
         output << request.data() << ": no buses" << std::endl;
     }
     else {
         output << request.data() << ": buses";
-        for (std::string_view route : set_of_route_in_stop.value()) {
+        for (std::string_view route : set_of_route_in_stop) {
             output << " " << route.data();
         }
         output << std::endl;
