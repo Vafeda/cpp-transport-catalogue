@@ -71,18 +71,16 @@ std::optional<RouteInfo> TransportCatalogue::GetBusInfo(std::string_view id) con
 	return route_info;
 }
 
-const std::set<std::string_view>* TransportCatalogue::GetStopStationInfo(std::string_view id) const {
-	static const std::set<std::string_view> empty_set;
-
+std::optional<std::set<std::string_view>> TransportCatalogue::GetStopStationInfo(std::string_view id) const {
 	const StopStation* ptr_stop_station = GetStopStation(id);
 	if (!ptr_stop_station) {
-		return nullptr;
+		return std::nullopt;
 	}
 
 	auto it_routes_in_stop = hash_table_routes_in_stop_.find(ptr_stop_station);
 	if (it_routes_in_stop != hash_table_routes_in_stop_.end()) {
-		return &(it_routes_in_stop->second);
+		return it_routes_in_stop->second;
 	}
 		
-    return &empty_set;
+    return std::set<std::string_view>{};
 }

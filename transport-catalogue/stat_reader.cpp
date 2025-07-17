@@ -23,17 +23,17 @@ void stat_reader::ParseAndPrintStat(const TransportCatalogue& transport_catalogu
     }
 }
 
-void stat_reader::PrintStopStat(const std::set<std::string_view>* ptr_set_of_route_in_stop, std::string_view request,
+void stat_reader::PrintStopStat(std::optional<std::set<std::string_view>> set_of_route_in_stop, std::string_view request,
     std::ostream& output) {
-    if (!ptr_set_of_route_in_stop) {
+    if (!set_of_route_in_stop) {
         output << request.data() << ": not found" << std::endl;
     }
-    else if (ptr_set_of_route_in_stop->empty()) {
+    else if (set_of_route_in_stop.value().empty()) {
         output << request.data() << ": no buses" << std::endl;
     }
     else {
         output << request.data() << ": buses";
-        for (std::string_view route : *ptr_set_of_route_in_stop) {
+        for (std::string_view route : set_of_route_in_stop.value()) {
             output << " " << route.data();
         }
         output << std::endl;

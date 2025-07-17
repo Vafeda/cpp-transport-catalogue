@@ -35,7 +35,7 @@ namespace transport_catalogue {
 		const Bus* GetBus(std::string_view id) const;
 
 		std::optional<RouteInfo> GetBusInfo(std::string_view id) const;
-		const std::set<std::string_view>* GetStopStationInfo(std::string_view id) const;
+		std::optional<std::set<std::string_view>> GetStopStationInfo(std::string_view id) const;
 
 	private:
 		std::deque<StopStation> stop_stations_;
