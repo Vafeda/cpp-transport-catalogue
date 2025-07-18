@@ -58,14 +58,17 @@ std::optional<RouteInfo> TransportCatalogue::GetBusInfo(std::string_view id) con
 		unique_names.insert(stop->name);
 	}
 
-	double length = 0.0;
+	int length = 0;
+	double curvature = 0;
 	for (auto it = ptr_bus->route.begin() + 1; it != ptr_bus->route.end(); ++it) {
-		length += ComputeDistance((*(it - 1))->coordinates, (*it)->coordinates);
+		length += GetDistanceBetweenStopsStations(*(it - 1), *it);
+		curvature += ComputeDistance((*(it - 1))->coordinates, (*it)->coordinates);
 	}
 
 	route_info.stops_count = ptr_bus->route.size();
 	route_info.unique_stops_count = unique_names.size();
 	route_info.route_length = length;
+	route_info.curvature = length / curvature;
 	route_info.route_exists = true;
 
 	return route_info;
@@ -85,4 +88,35 @@ const std::set<std::string_view>& TransportCatalogue::GetStopStationInfo(std::st
 	}
 		
     return empty_set;
+}
+
+void TransportCatalogue::SetDistanceBetweenStopsStations(const std::string& begin_stop_station, const std::string& end_stop_station, int distance) {
+	static const double nan = std::nan("");
+
+	const StopStation* ptr_begin_stop = GetStopStation(begin_stop_station);
+	if (!ptr_begin_stop) {
+		SetStopStation(begin_stop_station, { nan, nan });
+		ptr_begin_stop = GetStopStation(begin_stop_station);
+	}
+
+	const StopStation* ptr_end_stop = GetStopStation(end_stop_station);
+	if (!ptr_end_stop) {
+		SetStopStation(end_stop_station, { nan, nan });
+		ptr_end_stop = GetStopStation(end_stop_station);
+	}
+
+	hash_table_distance_between_stops[{ptr_begin_stop, ptr_end_stop}] = distance;
+}
+
+int TransportCatalogue::GetDistanceBetweenStopsStations(const StopStation* begin_stop_station, const StopStation* end_stop_station) const {
+	auto it_distance = hash_table_distance_between_stops.find({ begin_stop_station, end_stop_station });
+	if (it_distance == hash_table_distance_between_stops.end()) {
+		it_distance = hash_table_distance_between_stops.find({ end_stop_station, begin_stop_station });
+		if (it_distance == hash_table_distance_between_stops.end()) {
+			return -1;
+		}
+		return it_distance->second;
+	}
+
+	return it_distance->second;
 }

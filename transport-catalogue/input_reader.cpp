@@ -112,10 +112,28 @@ void input_reader::InputReader::ApplyCommands([[maybe_unused]] TransportCatalogu
 
     for (auto it_sorted_commands = sorted_commands.begin(); it_sorted_commands < sorted_commands.end(); ++it_sorted_commands) {
         if (it_sorted_commands->command == "Stop") {
-            catalogue.SetStopStation(it_sorted_commands->id, ParseCoordinates(it_sorted_commands->description));
+            ParseCoordinatesAndLenght(catalogue, it_sorted_commands->id, Split(it_sorted_commands->description, ','));
         }
         else if (it_sorted_commands->command == "Bus") {
             catalogue.SetBus(it_sorted_commands->id, ParseRoute(it_sorted_commands->description));
         }
+    }
+}
+
+void input_reader::ParseCoordinatesAndLenght(TransportCatalogue& catalogue, const std::string& id, std::vector<std::string_view> parse_string) {
+    if (parse_string.size() < 2) {
+        catalogue.SetStopStation(id, ParseCoordinates(""));
+        return;
+    }
+
+    double lat = std::stod(std::string(parse_string[0]));
+    double lng = std::stod(std::string(parse_string[1]));
+    catalogue.SetStopStation(id, { lat, lng });
+
+    for (auto it = parse_string.begin() + 2; it != parse_string.end(); ++it) {
+        size_t pos_between_info = it->find("m to ");
+        int distance = std::stoi(std::string(it->substr(0, pos_between_info)));
+        std::string stop_station = std::string(it->substr(pos_between_info + 5));
+        catalogue.SetDistanceBetweenStopsStations(id, stop_station, distance);
     }
 }

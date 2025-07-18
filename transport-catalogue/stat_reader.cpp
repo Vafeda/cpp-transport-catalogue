@@ -14,7 +14,7 @@ void stat_reader::ParseAndPrintStat(const TransportCatalogue& transport_catalogu
 
     std::string command = std::string(request.substr(0, middle_pos));
     std::string key = std::string(request.substr(middle_pos + 1));
-
+    
     if (command == "Stop") {
         if (!transport_catalogue.GetStopStation(key)) {
             output << request.data() << ": not found" << std::endl;
@@ -51,6 +51,7 @@ void stat_reader::PrintBusStat(std::optional<RouteInfo> bus_info, std::string_vi
         output << std::setprecision(6) << request.data() << ": "
             << bus_info->stops_count << " stops on route, "
             << bus_info->unique_stops_count << " unique stops, "
-            << bus_info->route_length << " route length" << std::endl;
+            << bus_info->route_length << " route length, " 
+            << bus_info->curvature << " curvature" << std::endl;
     }
 }
