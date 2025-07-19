@@ -31,13 +31,13 @@ namespace transport_catalogue {
 
 	class TransportCatalogue {
 	public:
-		void SetStopStation(const std::string& id, const detail::Coordinates coordinates);
-		void SetBus(const std::string& id, const std::vector<std::string_view>& route);
-		void SetDistanceBetweenStopsStations(const std::string& begin_stop_station, const std::string& end_stop_station, int distance);
+		void AddStopStation(const std::string& id, const detail::Coordinates coordinates);
+		void AddBus(const std::string& id, const std::vector<std::string_view>& route);
+		void SetDistanceBetweenStopsStations(std::string_view begin_stop_station, std::string_view end_stop_station, int distance);
 
 		const StopStation* GetStopStation(std::string_view id) const;
 		const Bus* GetBus(std::string_view id) const;
-		int GetDistanceBetweenStopsStations(const StopStation* begin_stop_station, const StopStation* end_stop_station) const;
+		std::optional<int> GetDistanceBetweenStopsStations(const StopStation* begin_stop_station, const StopStation* end_stop_station) const;
 
 		std::optional<RouteInfo> GetBusInfo(std::string_view id) const;
 		const std::set<std::string_view>& GetStopStationInfo(std::string_view id) const;

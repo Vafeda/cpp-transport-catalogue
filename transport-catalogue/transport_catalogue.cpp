@@ -2,7 +2,7 @@
 
 using namespace transport_catalogue;
 
-void TransportCatalogue::SetStopStation(const std::string& id, const detail::Coordinates coordinates) {
+void TransportCatalogue::AddStopStation(const std::string& id, const detail::Coordinates coordinates) {
 	const StopStation* ptr_stop_station = GetStopStation(id);
 	if (!ptr_stop_station) {
 		stop_stations_.push_back({ id, coordinates });
@@ -13,14 +13,14 @@ void TransportCatalogue::SetStopStation(const std::string& id, const detail::Coo
 	}
 }
 
-void TransportCatalogue::SetBus(const std::string& id, const std::vector<std::string_view>& route) {
+void TransportCatalogue::AddBus(const std::string& id, const std::vector<std::string_view>& route) {
 	bus_routes_.push_back({ id, {} });
 	Bus& current_bus = bus_routes_.back();
 
 	for (std::string_view stop : route) {
 		auto it = hash_table_stop_stations_.find(stop);
 		if (it == hash_table_stop_stations_.end()) {
-			SetStopStation(std::string(stop), {});
+			AddStopStation(std::string(stop), {});
 			it = hash_table_stop_stations_.find(stop);
 		}
 
@@ -61,7 +61,10 @@ std::optional<RouteInfo> TransportCatalogue::GetBusInfo(std::string_view id) con
 	int length = 0;
 	double curvature = 0;
 	for (auto it = ptr_bus->route.begin() + 1; it != ptr_bus->route.end(); ++it) {
-		length += GetDistanceBetweenStopsStations(*(it - 1), *it);
+		std::optional<int> distance = GetDistanceBetweenStopsStations(*(it - 1), *it);
+		if (distance.has_value()) {
+			length += distance.value();
+		}
 		curvature += ComputeDistance((*(it - 1))->coordinates, (*it)->coordinates);
 	}
 
@@ -90,30 +93,30 @@ const std::set<std::string_view>& TransportCatalogue::GetStopStationInfo(std::st
     return empty_set;
 }
 
-void TransportCatalogue::SetDistanceBetweenStopsStations(const std::string& begin_stop_station, const std::string& end_stop_station, int distance) {
+void TransportCatalogue::SetDistanceBetweenStopsStations(std::string_view begin_stop_station, std::string_view end_stop_station, int distance) {
 	static const double nan = std::nan("");
 
 	const StopStation* ptr_begin_stop = GetStopStation(begin_stop_station);
 	if (!ptr_begin_stop) {
-		SetStopStation(begin_stop_station, { nan, nan });
+		AddStopStation(std::string(begin_stop_station), { nan, nan });
 		ptr_begin_stop = GetStopStation(begin_stop_station);
 	}
 
 	const StopStation* ptr_end_stop = GetStopStation(end_stop_station);
 	if (!ptr_end_stop) {
-		SetStopStation(end_stop_station, { nan, nan });
+		AddStopStation(std::string(end_stop_station), { nan, nan });
 		ptr_end_stop = GetStopStation(end_stop_station);
 	}
 
 	hash_table_distance_between_stops[{ptr_begin_stop, ptr_end_stop}] = distance;
 }
 
-int TransportCatalogue::GetDistanceBetweenStopsStations(const StopStation* begin_stop_station, const StopStation* end_stop_station) const {
+std::optional<int> TransportCatalogue::GetDistanceBetweenStopsStations(const StopStation* begin_stop_station, const StopStation* end_stop_station) const {
 	auto it_distance = hash_table_distance_between_stops.find({ begin_stop_station, end_stop_station });
 	if (it_distance == hash_table_distance_between_stops.end()) {
 		it_distance = hash_table_distance_between_stops.find({ end_stop_station, begin_stop_station });
 		if (it_distance == hash_table_distance_between_stops.end()) {
-			return -1;
+			return std::nullopt;
 		}
 		return it_distance->second;
 	}

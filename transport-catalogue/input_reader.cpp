@@ -115,20 +115,20 @@ void input_reader::InputReader::ApplyCommands([[maybe_unused]] TransportCatalogu
             ParseCoordinatesAndLenght(catalogue, it_sorted_commands->id, Split(it_sorted_commands->description, ','));
         }
         else if (it_sorted_commands->command == "Bus") {
-            catalogue.SetBus(it_sorted_commands->id, ParseRoute(it_sorted_commands->description));
+            catalogue.AddBus(it_sorted_commands->id, ParseRoute(it_sorted_commands->description));
         }
     }
 }
 
 void input_reader::ParseCoordinatesAndLenght(TransportCatalogue& catalogue, const std::string& id, std::vector<std::string_view> parse_string) {
     if (parse_string.size() < 2) {
-        catalogue.SetStopStation(id, ParseCoordinates(""));
+        catalogue.AddStopStation(id, ParseCoordinates(""));
         return;
     }
 
     double lat = std::stod(std::string(parse_string[0]));
     double lng = std::stod(std::string(parse_string[1]));
-    catalogue.SetStopStation(id, { lat, lng });
+    catalogue.AddStopStation(id, { lat, lng });
 
     for (auto it = parse_string.begin() + 2; it != parse_string.end(); ++it) {
         size_t pos_between_info = it->find("m to ");
