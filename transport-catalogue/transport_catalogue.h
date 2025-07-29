@@ -1,5 +1,5 @@
 #pragma once
-#include "geo.h"
+#include "domain.h"
 #include <deque>
 #include <optional>
 #include <set>
@@ -8,31 +8,15 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
-#include <vector>
+
+
 
 namespace transport_catalogue {
-	struct StopStation {
-		std::string name;
-		detail::Coordinates coordinates;
-	};
-
-	struct Bus {
-		std::string name;
-		std::vector<const StopStation*> route;
-	};
-
-	struct RouteInfo {
-		size_t stops_count;
-		size_t unique_stops_count;
-		int route_length;
-		double curvature;
-		bool route_exists;
-	};
 
 	class TransportCatalogue {
 	public:
-		void AddStopStation(const std::string& id, const detail::Coordinates coordinates);
-		void AddBus(const std::string& id, const std::vector<std::string_view>& route);
+		void AddStopStation(const std::string& id, const geo::Coordinates coordinates);
+		void AddBus(const std::string& id, const std::vector<std::string_view>& route, bool is_roundtrip);
 		void SetDistanceBetweenStopsStations(std::string_view begin_stop_station, std::string_view end_stop_station, int distance);
 
 		const StopStation* GetStopStation(std::string_view id) const;
@@ -41,7 +25,10 @@ namespace transport_catalogue {
 
 		std::optional<RouteInfo> GetBusInfo(std::string_view id) const;
 		const std::set<std::string_view>& GetStopStationInfo(std::string_view id) const;
-	
+
+		const std::deque<Bus>& GetAllRoute() const;
+		const std::deque<StopStation>& GetAllStopStation() const;
+
 	private:
 		struct StopPairHash {
 			size_t operator()(const std::pair<const StopStation*, const StopStation*>& stop_pair) const {

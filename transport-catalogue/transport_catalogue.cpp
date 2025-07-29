@@ -1,8 +1,9 @@
 #include "transport_catalogue.h"
+#include <cmath>
 
 using namespace transport_catalogue;
 
-void TransportCatalogue::AddStopStation(const std::string& id, const detail::Coordinates coordinates) {
+void TransportCatalogue::AddStopStation(const std::string& id, const geo::Coordinates coordinates) {
 	const StopStation* ptr_stop_station = GetStopStation(id);
 	if (!ptr_stop_station) {
 		stop_stations_.push_back({ id, coordinates });
@@ -13,8 +14,8 @@ void TransportCatalogue::AddStopStation(const std::string& id, const detail::Coo
 	}
 }
 
-void TransportCatalogue::AddBus(const std::string& id, const std::vector<std::string_view>& route) {
-	bus_routes_.push_back({ id, {} });
+void TransportCatalogue::AddBus(const std::string& id, const std::vector<std::string_view>& route, bool is_roundtrip) {
+	bus_routes_.push_back({ id, {}, is_roundtrip});
 	Bus& current_bus = bus_routes_.back();
 
 	for (std::string_view stop : route) {
@@ -89,8 +90,8 @@ const std::set<std::string_view>& TransportCatalogue::GetStopStationInfo(std::st
 	if (it_routes_in_stop != hash_table_routes_in_stop_.end()) {
 		return it_routes_in_stop->second;
 	}
-		
-    return empty_set;
+
+	return empty_set;
 }
 
 void TransportCatalogue::SetDistanceBetweenStopsStations(std::string_view begin_stop_station, std::string_view end_stop_station, int distance) {
@@ -122,4 +123,12 @@ std::optional<int> TransportCatalogue::GetDistanceBetweenStopsStations(const Sto
 	}
 
 	return it_distance->second;
+}
+
+const std::deque<Bus>& TransportCatalogue::GetAllRoute() const {
+	return bus_routes_;
+}
+
+const std::deque<StopStation>& TransportCatalogue::GetAllStopStation() const {
+	return stop_stations_;
 }
