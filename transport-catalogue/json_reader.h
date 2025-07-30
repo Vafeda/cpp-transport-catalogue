@@ -17,7 +17,7 @@ namespace json_reader {
 
 	class JsonReader {
 	public:
-		JsonReader(std::istream& input) try
+		JsonReader(std::istream& input)
 			: input_json_(json::Load(input))
 			, json_(input_json_.GetRoot().AsMap())
 		{
@@ -37,15 +37,14 @@ namespace json_reader {
 				throw std::logic_error("JsonReader: The dictionary is missing a key\"" + stat_key + "\"");
 			}
 		}
-		catch (const std::exception& e) {
-			throw e;
-		}
 
 		transport_catalogue::TransportCatalogue ApplyBaseRequests() const;
 		map_renderer::RenderSettings ApplyRenderSettings() const;
 		const json::Document StatInfo(const transport_catalogue::TransportCatalogue& catalogue, const RequestHandler& rh) const;
 
-	private: 
+	private:
+		void ProcessStopRequests(const json::Array& array, transport_catalogue::TransportCatalogue& tc) const;
+		void ProcessBusRequests(const json::Array& array, transport_catalogue::TransportCatalogue& tc) const;
 		void ApplyStopInfo(const json::Dict& dict, transport_catalogue::TransportCatalogue& tc) const;
 		void ApplyBusInfo(const json::Dict& dict, transport_catalogue::TransportCatalogue& tc) const;
 
@@ -55,9 +54,11 @@ namespace json_reader {
 		void ApplyStopLabel(const json::Dict& dict, map_renderer::RenderSettings& rs) const;
 		void ApplyUnderlayer(const json::Dict& dict, map_renderer::RenderSettings& rs) const;
 		void ApplyColorPalette(const json::Dict& dict, map_renderer::RenderSettings& rs) const;
-	
-		json::Dict StatBusInfo() const;
-		json::Dict StatMapInfo() const;
+		const svg::Color ParseColorFromJson(const json::Node& clr) const;
+
+		const json::Dict StatStopInfo(int id, std::string name, const transport_catalogue::TransportCatalogue& catalogue) const;
+		const json::Dict StatBusInfo(int id, std::string name, const transport_catalogue::TransportCatalogue& catalogue) const;
+		const json::Dict StatMapInfo(int id, const RequestHandler& rh) const;
 
 	private:
 		const json::Document input_json_;

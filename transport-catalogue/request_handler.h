@@ -4,8 +4,8 @@
 
 class RequestHandler {
 public:
-    RequestHandler(const transport_catalogue::TransportCatalogue& db, const map_renderer::RenderSettings& rs)
-        : db_(db)
+    RequestHandler(const transport_catalogue::TransportCatalogue& tc, const map_renderer::RenderSettings& rs)
+        : tc_(tc)
         , rs_(rs)
     {
     }
@@ -14,6 +14,6 @@ public:
 
 private:
 
-    const transport_catalogue::TransportCatalogue& db_;
+    const transport_catalogue::TransportCatalogue& tc_;
     const map_renderer::RenderSettings& rs_;
 };

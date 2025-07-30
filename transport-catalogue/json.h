@@ -17,18 +17,12 @@ namespace json {
         using runtime_error::runtime_error;
     };
 
-    class Node {
+    class Node final
+        : public std::variant<std::nullptr_t, Array, Dict, bool, int, double, std::string>
+    {
     public:
-        using Value = std::variant<std::nullptr_t, Array, Dict, bool, int, double, std::string>;
 
-
-        Node(std::nullptr_t = nullptr) : value_(nullptr) {}
-        Node(Array array) : value_(std::move(array)) {}
-        Node(Dict dict) : value_(std::move(dict)) {}
-        Node(bool b) : value_(b) {}
-        Node(int i) : value_(i) {}
-        Node(double d) : value_(d) {}
-        Node(std::string str) : value_(std::move(str)) {}
+        using variant::variant;
 
         //----------------------------------------------
         //---------------Type_checking------------------
@@ -52,18 +46,16 @@ namespace json {
         const Array& AsArray() const;
         const Dict& AsMap() const;
 
-        const Value& GetValue() const { return value_; }
+        const auto& GetVariant() const { return *this; }
 
         bool operator==(const Node& other) const {
-            return value_ == other.value_;
+            return static_cast<const variant&>(*this) == static_cast<const variant&>(other);
         }
 
         bool operator!=(const Node& other) const {
-            return value_ != other.value_;
+            return !(*this == other);
         }
 
-    private:
-        Value value_;
     };
 
     class Document {
@@ -160,7 +152,7 @@ namespace json {
                 }
                 first = false;
                 inner_ctx.PrintIndent();
-                visit(PrintNode{ inner_ctx }, elem.GetValue());
+                visit(PrintNode{ inner_ctx }, elem.GetVariant());
             }
             ctx_.out << "\n";
             ctx_.PrintIndent();
@@ -183,7 +175,7 @@ namespace json {
                 first = false;
                 inner_ctx.PrintIndent();
                 ctx_.out << "\"" << key << "\": ";
-                visit(PrintNode{ inner_ctx }, value.GetValue());
+                visit(PrintNode{ inner_ctx }, value.GetVariant());
             }
             ctx_.out << "\n";
             ctx_.PrintIndent();

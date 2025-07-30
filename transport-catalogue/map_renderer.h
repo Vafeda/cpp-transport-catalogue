@@ -1,6 +1,6 @@
 #pragma once
-#include "domain.h"
-#include "geo.h"
+
+#include "transport_catalogue.h"
 #include "svg.h"
 
 #include <algorithm>
@@ -10,51 +10,23 @@ namespace map_renderer {
 
     using namespace std::literals;
 
-    class RenderSettings {
-    public:
-        void SetWidth(double width);
-        void SetHeight(double height);
-        void SetPadding(double padding);
-        void SetLineWidth(double line_width);
-        void SetStopRadius(double stop_radius_);
-        void SetBusLabelFontSize(int bus_label_font_size);
-        void SetBusLabelOffset(const std::vector<double>& bus_label_offset);
-        void SetStopLabelFontSize(int stop_label_font_size);
-        void SetStopLabelOffset(const std::vector<double>& stop_label_offset);
-        void SetUnderlayerColor(const svg::Color& underlayer_color);
-        void SetUnderlayerWidth(double underlayer_width);
-        void SetColorPalette(const std::vector<svg::Color>& color_palette);
-        
-        double GetWidth() const;
-        double GetHeight() const;
-        double GetPadding() const;
-        double GetLineWidth() const;
-        double GetStopRadius() const;
-        int GetBusLabelFontSize() const;
-        const std::vector<double>& GetBusLabelOffset() const;
-        int GetStopLabelFontSize() const;
-        const std::vector<double>& GetStopLabelOffset() const;
-        const svg::Color& GetUnderlayerColor() const;
-        double GetUnderlayerWidth() const;
-        const std::vector<svg::Color>& GetColorPalette() const;
+    struct RenderSettings {
+        double width_ = 0.0;
+        double height_ = 0.0;
 
-    private:
-        double width_;
-        double height_;
+        double padding_ = 0.0;
 
-        double padding_;
+        double line_width_ = 0.0;
+        double stop_radius_ = 0.0;
 
-        double line_width_;
-        double stop_radius_;
-
-        int bus_label_font_size_;
+        int bus_label_font_size_ = 0;
         std::vector<double> bus_label_offset_{};
 
-        int stop_label_font_size_;
+        int stop_label_font_size_ = 0;
         std::vector<double> stop_label_offset_{};
 
-        svg::Color underlayer_color_;
-        double underlayer_width_;
+        svg::Color underlayer_color_ = svg::NoneColor;
+        double underlayer_width_ = 0;
 
         std::vector<svg::Color> color_palette_{};
     };
@@ -133,4 +105,21 @@ namespace map_renderer {
         double zoom_coeff_ = 0;
     };
 
+    class RenderMap {
+    public:
+        RenderMap(const RenderSettings& rs, const SphereProjector& projector)
+            : rs_(rs)
+            , projector_(projector)
+        {
+        }
+
+        void RenderBusRoutes(const std::deque<transport_catalogue::Bus>& buses, svg::Document& render_map);
+        void RenderBusLabels(const std::deque<transport_catalogue::Bus>& buses, svg::Document& render_map);
+        void RenderStopSymbols(const std::deque<transport_catalogue::StopStation>& stops, const transport_catalogue::TransportCatalogue& tc, svg::Document& render_map);
+        void RenderStopLabels(const std::deque<transport_catalogue::StopStation>& stops, const transport_catalogue::TransportCatalogue& tc, svg::Document& render_map);
+
+    private:
+        const RenderSettings rs_;
+        const SphereProjector projector_;
+    };
 }
