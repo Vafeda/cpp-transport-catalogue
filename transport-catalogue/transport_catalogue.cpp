@@ -128,7 +128,3 @@ std::optional<int> TransportCatalogue::GetDistanceBetweenStopsStations(const Sto
 const std::deque<Bus>& TransportCatalogue::GetAllRoute() const {
 	return bus_routes_;
 }
-
-const std::deque<StopStation>& TransportCatalogue::GetAllStopStation() const {
-	return stop_stations_;
-}

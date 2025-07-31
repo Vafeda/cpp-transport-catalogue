@@ -107,19 +107,34 @@ namespace map_renderer {
 
     class RenderMap {
     public:
-        RenderMap(const RenderSettings& rs, const SphereProjector& projector)
+        struct StopStationCompare {
+            bool operator()(const transport_catalogue::StopStation& lhs,
+                const transport_catalogue::StopStation& rhs) const {
+                return lhs.name < rhs.name;
+            }
+        };
+
+        RenderMap(const RenderSettings& rs, const std::deque<transport_catalogue::Bus>& buses)
             : rs_(rs)
-            , projector_(projector)
+            , buses_(buses)
+            , stops_(CollectUniqueStops(buses))
+            , projector_(CreateProjector(buses, rs))
         {
         }
 
-        void RenderBusRoutes(const std::deque<transport_catalogue::Bus>& buses, svg::Document& render_map);
-        void RenderBusLabels(const std::deque<transport_catalogue::Bus>& buses, svg::Document& render_map);
-        void RenderStopSymbols(const std::deque<transport_catalogue::StopStation>& stops, const transport_catalogue::TransportCatalogue& tc, svg::Document& render_map);
-        void RenderStopLabels(const std::deque<transport_catalogue::StopStation>& stops, const transport_catalogue::TransportCatalogue& tc, svg::Document& render_map);
+        svg::Document RenderBusRoutes();
+        svg::Document RenderBusLabels();
+        svg::Document RenderStopSymbols(const transport_catalogue::TransportCatalogue& tc);
+        svg::Document RenderStopLabels(const transport_catalogue::TransportCatalogue& tc);
+
+    private:
+        SphereProjector CreateProjector(const std::deque<transport_catalogue::Bus>& buses, const RenderSettings& rs) const;
+        std::set<transport_catalogue::StopStation, StopStationCompare> CollectUniqueStops(const std::deque<transport_catalogue::Bus>& buses) const;
 
     private:
         const RenderSettings rs_;
+        const std::deque<transport_catalogue::Bus> buses_;
+        const std::set<transport_catalogue::StopStation, StopStationCompare> stops_;
         const SphereProjector projector_;
     };
 }

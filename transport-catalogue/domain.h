@@ -4,11 +4,12 @@
 #include <string>
 
 namespace transport_catalogue {
-
 	struct StopStation {
 		std::string name;
 		geo::Coordinates coordinates;
 	};
+
+	bool operator<(const StopStation& lhs, const StopStation& rhs);
 
 	struct Bus {
 		std::string name;

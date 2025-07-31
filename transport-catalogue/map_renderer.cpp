@@ -1,9 +1,11 @@
 #include "map_renderer.h"
 
 namespace map_renderer {
-	void RenderMap::RenderBusRoutes(const std::deque<transport_catalogue::Bus>& buses, svg::Document& render_map) {
+	svg::Document RenderMap::RenderBusRoutes() {
+		svg::Document render_map;
+
 		size_t color_palette_index = 0;
-		for (auto& bus : buses) {
+		for (const auto& bus : buses_) {
 			if (bus.route.empty()) {
 				continue;
 			}
@@ -20,11 +22,15 @@ namespace map_renderer {
 				.SetStrokeLineJoin(svg::StrokeLineJoin::ROUND));
 			color_palette_index %= rs_.color_palette_.size();
 		}
+
+		return render_map;
 	}
 
-	void RenderMap::RenderBusLabels(const std::deque<transport_catalogue::Bus>& buses, svg::Document& render_map) {
+	svg::Document RenderMap::RenderBusLabels() {
+		svg::Document render_map;
+
 		size_t color_palette_index = 0;
-		for (auto& bus : buses) {
+		for (const auto& bus : buses_) {
 			if (bus.route.empty()) {
 				continue;
 			}
@@ -77,19 +83,27 @@ namespace map_renderer {
 			render_map.Add(substrate_properties);
 			color_palette_index %= rs_.color_palette_.size();
 		}
+
+		return render_map;
 	}
 
-	void RenderMap::RenderStopSymbols(const std::deque<transport_catalogue::StopStation>& stops, const transport_catalogue::TransportCatalogue& tc, svg::Document& render_map) {
-		for (auto& stop : stops) {
+	svg::Document RenderMap::RenderStopSymbols(const transport_catalogue::TransportCatalogue& tc) {
+		svg::Document render_map;
+
+		for (const auto& stop : stops_) {
 			if (!tc.GetStopStationInfo(stop.name).empty()) {
 				render_map.Add(svg::Circle().SetCenter(projector_(stop.coordinates))
 					.SetRadius(rs_.stop_radius_)
 					.SetFillColor("white"));
 			}
 		}
+
+		return render_map;
 	}
 
-	void RenderMap::RenderStopLabels(const std::deque<transport_catalogue::StopStation>& stops, const transport_catalogue::TransportCatalogue& tc, svg::Document& render_map) {
+	svg::Document RenderMap::RenderStopLabels(const transport_catalogue::TransportCatalogue& tc) {
+		svg::Document render_map;
+
 		svg::Text substrate_properties;
 		substrate_properties
 			.SetOffset(svg::Point(rs_.stop_label_offset_[0], rs_.stop_label_offset_[1]))
@@ -104,7 +118,7 @@ namespace map_renderer {
 			.SetStrokeLineCap(svg::StrokeLineCap::ROUND)
 			.SetStrokeLineJoin(svg::StrokeLineJoin::ROUND);
 
-		for (auto& stop : stops) {
+		for (const auto& stop : stops_) {
 			if (!tc.GetStopStationInfo(stop.name).empty()) {
 				general_properties.SetPosition(projector_(stop.coordinates))
 					.SetData(stop.name);
@@ -116,5 +130,30 @@ namespace map_renderer {
 				render_map.Add(substrate_properties);
 			}
 		}
+
+		return render_map;
+	}
+
+	SphereProjector RenderMap::CreateProjector(const std::deque<transport_catalogue::Bus>& buses, const RenderSettings& rs) const {
+		std::vector<geo::Coordinates> coordinates;
+		for (const auto& bus : buses) {
+			for (const auto& stop : bus.route) {
+				coordinates.push_back(stop->coordinates);
+			}
+		}
+
+		return SphereProjector(coordinates.begin(), coordinates.end(), rs.width_, rs.height_, rs.padding_);
+	}
+
+	std::set<transport_catalogue::StopStation, RenderMap::StopStationCompare> RenderMap::CollectUniqueStops(
+		const std::deque<transport_catalogue::Bus>& buses) const
+	{
+		std::set<transport_catalogue::StopStation, StopStationCompare> stops;
+		for (const auto& bus : buses) {
+			for (const auto& stop : bus.route) {
+				stops.insert(*stop);
+			}
+		}
+		return stops;
 	}
 }

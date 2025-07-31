@@ -326,6 +326,12 @@ namespace svg {
 
     class Document final : public ObjectContainer {
     public:
+        void Merge(Document&& other) {
+            for (auto&& obj : other.objects_) {
+                objects_.push_back(std::move(obj));
+            }
+        }
+
         // Добавляет в svg-документ объект-наследник svg::Object
         void AddPtr(std::unique_ptr<Object>&& ptr) override;
 
