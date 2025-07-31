@@ -122,14 +122,16 @@ namespace map_renderer {
         {
         }
 
-        svg::Document RenderBusRoutes();
-        svg::Document RenderBusLabels();
-        svg::Document RenderStopSymbols(const transport_catalogue::TransportCatalogue& tc);
-        svg::Document RenderStopLabels(const transport_catalogue::TransportCatalogue& tc);
+        svg::Document RenderAllLayers(const transport_catalogue::TransportCatalogue& tc);
 
     private:
         SphereProjector CreateProjector(const std::deque<transport_catalogue::Bus>& buses, const RenderSettings& rs) const;
         std::set<transport_catalogue::StopStation, StopStationCompare> CollectUniqueStops(const std::deque<transport_catalogue::Bus>& buses) const;
+
+        svg::Document RenderBusRoutes();
+        svg::Document RenderBusLabels();
+        svg::Document RenderStopSymbols(const transport_catalogue::TransportCatalogue& tc);
+        svg::Document RenderStopLabels(const transport_catalogue::TransportCatalogue& tc);
 
     private:
         const RenderSettings rs_;

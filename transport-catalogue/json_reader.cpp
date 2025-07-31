@@ -28,7 +28,7 @@ namespace json_reader {
 		for (const json::Node& a : array) {
 			json::Dict map;
 
-			map = a.AsMap();
+			map = a.AsDict();
 
 			auto it_type = map.find("type");
 			if (it_type == map.end()) {
@@ -45,7 +45,7 @@ namespace json_reader {
 		for (const json::Node& a : array) {
 			json::Dict map;
 
-			map = a.AsMap();
+			map = a.AsDict();
 
 			auto it_type = map.find("type");
 			if (it_type == map.end()) {
@@ -86,7 +86,7 @@ namespace json_reader {
 				throw std::logic_error(error_messeg_base_requests_stop + "\"road_distances\"");
 			}
 
-			const json::Dict road_distances = it_road_distances->second.AsMap();
+			const json::Dict road_distances = it_road_distances->second.AsDict();
 			for (const auto& [key, value] : road_distances) {
 				tc.SetDistanceBetweenStopsStations(it_name->second.AsString(), key, value.AsInt());
 			}
@@ -134,7 +134,7 @@ namespace json_reader {
 			throw std::logic_error("JsonReader(ApplyRenderSetting): The dictionary is missing a key\"" + render_key + "\"");
 		}
 
-		const json::Dict dict = render_settings->second.AsMap();
+		const json::Dict dict = render_settings->second.AsDict();
 			
 		map_renderer::RenderSettings rs;
 		ApplyWidthHeightPadding(dict, rs);
@@ -365,7 +365,7 @@ namespace json_reader {
 		for (const json::Node& a : array) {
 			json::Dict map;
 
-			map = a.AsMap();
+			map = a.AsDict();
 
 			auto it_id = map.find("id");
 			if (it_id == map.end()) {
@@ -402,10 +402,13 @@ namespace json_reader {
 		const std::set<std::string_view> buses = catalogue.GetStopStationInfo(name);
 
 		json::Dict result;
-
+		
 		if (catalogue.GetStopStation(name) == nullptr) {
-			result["request_id"] = id;
-			result["error_message"] = "not found"s;
+			result = json::Builder{}.StartDict()
+									.Key("request_id"s).Value(id)
+									.Key("error_message"s).Value("not found"s)
+									.EndDict()
+									.Build().AsDict();
 		}
 		else
 		{
@@ -413,8 +416,12 @@ namespace json_reader {
 			for (auto bus : buses) {
 				bus_array.push_back(json::Node(std::string(bus.data())));
 			}
-			result["buses"] = bus_array;
-			result["request_id"] = id;
+
+			result = json::Builder{}.StartDict()
+									.Key("buses"s).Value(bus_array)
+									.Key("request_id"s).Value(id)
+									.EndDict()
+									.Build().AsDict();
 		}
 
 		return result;
@@ -426,16 +433,23 @@ namespace json_reader {
 		json::Dict result;
 
 		if (!bus_info.has_value()) {
-			result["request_id"] = id;
-			result["error_message"] = "not found"s;
+			result = json::Builder{}.StartDict()
+									.Key("request_id"s).Value(id)
+									.Key("error_message"s).Value("not found"s)
+									.EndDict()
+									.Build().AsDict();
 		}
 		else {
 			const auto& bus = bus_info.value();
-			result["curvature"] = bus.curvature;
-			result["request_id"] = id;
-			result["route_length"] = bus.route_length;
-			result["stop_count"] = static_cast<int>(bus.stops_count);
-			result["unique_stop_count"] = static_cast<int>(bus.unique_stops_count);
+
+			result = json::Builder{}.StartDict()
+									.Key("curvature"s).Value(bus.curvature)
+									.Key("request_id"s).Value(id)
+									.Key("route_length"s).Value(bus.route_length)
+									.Key("stop_count"s).Value(static_cast<int>(bus.stops_count))
+									.Key("unique_stop_count"s).Value(static_cast<int>(bus.unique_stops_count))
+									.EndDict()
+									.Build().AsDict();
 		}
 
 		return result;
@@ -444,11 +458,14 @@ namespace json_reader {
 	const json::Dict JsonReader::StatMapInfo(int id, const RequestHandler& rh) const {
 		json::Dict result;
 
-		result["request_id"] = id;
-
 		std::ostringstream s;
 		rh.RenderMap().Render(s);
-		result["map"] = s.str();
+
+		result = json::Builder{}.StartDict()
+								.Key("request_id"s).Value(id)
+								.Key("map"s).Value(s.str())
+								.EndDict()
+								.Build().AsDict();
 
 		return result;
 	}

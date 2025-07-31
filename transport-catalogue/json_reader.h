@@ -2,6 +2,7 @@
 #include "json.h"
 #include "transport_catalogue.h"
 #include "map_renderer.h"
+#include "json_builder.h"
 #include <sstream>
 
 // Костыль
@@ -19,7 +20,7 @@ namespace json_reader {
 	public:
 		JsonReader(std::istream& input)
 			: input_json_(json::Load(input))
-			, json_(input_json_.GetRoot().AsMap())
+			, json_(input_json_.GetRoot().AsDict())
 		{
 			if (json_.size() != 3) {
 				throw std::logic_error("JsonReader: The dictionary has not 3 elements");

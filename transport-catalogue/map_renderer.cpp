@@ -1,6 +1,15 @@
 #include "map_renderer.h"
 
 namespace map_renderer {
+	svg::Document RenderMap::RenderAllLayers(const transport_catalogue::TransportCatalogue& tc) {
+		svg::Document render_map;
+		render_map.Merge(RenderBusRoutes());
+		render_map.Merge(RenderBusLabels());
+		render_map.Merge(RenderStopSymbols(tc));
+		render_map.Merge(RenderStopLabels(tc));
+		return render_map;
+	}
+
 	svg::Document RenderMap::RenderBusRoutes() {
 		svg::Document render_map;
 

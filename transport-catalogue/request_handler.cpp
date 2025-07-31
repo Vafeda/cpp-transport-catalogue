@@ -11,11 +11,5 @@ svg::Document RequestHandler::RenderMap() const {
 
 	map_renderer::RenderMap rm(rs_, deque_bus);
 
-	svg::Document render_map;
-	render_map.Merge(rm.RenderBusRoutes());
-	render_map.Merge(rm.RenderBusLabels());
-	render_map.Merge(rm.RenderStopSymbols(tc_));
-	render_map.Merge(rm.RenderStopLabels(tc_));
-
-	return render_map;
+	return rm.RenderAllLayers(tc_);
 }
