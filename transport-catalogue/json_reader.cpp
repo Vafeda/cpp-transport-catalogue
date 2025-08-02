@@ -405,10 +405,10 @@ namespace json_reader {
 		
 		if (catalogue.GetStopStation(name) == nullptr) {
 			result = json::Builder{}.StartDict()
-									.Key("request_id"s).Value(id)
-									.Key("error_message"s).Value("not found"s)
-									.EndDict()
-									.Build().AsDict();
+				.Key("request_id"s).Value(id)
+				.Key("error_message"s).Value("not found"s)
+				.EndDict()
+				.Build().AsDict();
 		}
 		else
 		{
@@ -418,10 +418,10 @@ namespace json_reader {
 			}
 
 			result = json::Builder{}.StartDict()
-									.Key("buses"s).Value(bus_array)
-									.Key("request_id"s).Value(id)
-									.EndDict()
-									.Build().AsDict();
+				.Key("buses"s).Value(bus_array)
+				.Key("request_id"s).Value(id)
+				.EndDict()
+				.Build().AsDict();
 		}
 
 		return result;
@@ -434,22 +434,22 @@ namespace json_reader {
 
 		if (!bus_info.has_value()) {
 			result = json::Builder{}.StartDict()
-									.Key("request_id"s).Value(id)
-									.Key("error_message"s).Value("not found"s)
-									.EndDict()
-									.Build().AsDict();
+				.Key("request_id"s).Value(id)
+				.Key("error_message"s).Value("not found"s)
+				.EndDict()
+				.Build().AsDict();
 		}
 		else {
 			const auto& bus = bus_info.value();
 
 			result = json::Builder{}.StartDict()
-									.Key("curvature"s).Value(bus.curvature)
-									.Key("request_id"s).Value(id)
-									.Key("route_length"s).Value(bus.route_length)
-									.Key("stop_count"s).Value(static_cast<int>(bus.stops_count))
-									.Key("unique_stop_count"s).Value(static_cast<int>(bus.unique_stops_count))
-									.EndDict()
-									.Build().AsDict();
+				.Key("curvature"s).Value(bus.curvature)
+				.Key("request_id"s).Value(id)
+				.Key("route_length"s).Value(bus.route_length)
+				.Key("stop_count"s).Value(static_cast<int>(bus.stops_count))
+				.Key("unique_stop_count"s).Value(static_cast<int>(bus.unique_stops_count))
+				.EndDict()
+				.Build().AsDict();
 		}
 
 		return result;
@@ -462,10 +462,10 @@ namespace json_reader {
 		rh.RenderMap().Render(s);
 
 		result = json::Builder{}.StartDict()
-								.Key("request_id"s).Value(id)
-								.Key("map"s).Value(s.str())
-								.EndDict()
-								.Build().AsDict();
+			.Key("request_id"s).Value(id)
+			.Key("map"s).Value(s.str())
+			.EndDict()
+			.Build().AsDict();
 
 		return result;
 	}
