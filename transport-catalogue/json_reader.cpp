@@ -351,9 +351,48 @@ namespace json_reader {
 	}
 
 	//-------------------------------------------------------------------
+	//-----------------Function Apply Routing Settings-------------------
+	//-------------------------------------------------------------------
+	inline std::string error_messeg_routing_setting = "JsonReader(ApplyRoutingSetting): The \"routing_settings\" dictionary missing the key "s;
+
+	graph::RouteSetting JsonReader::ApplyRoutingSetting() const {
+		auto routing_settings = json_.find(routing_key);
+		if (routing_settings == json_.end()) {
+			throw std::logic_error("JsonReader(ApplyRoutingSetting): The dictionary is missing a key\"" + routing_key + "\"");
+		}
+
+		const json::Dict dict = routing_settings->second.AsDict();
+		graph::RouteSetting rs;
+
+		auto it_bus_wait_time = dict.find("bus_wait_time"s);
+		if (it_bus_wait_time == dict.end()) {
+			throw std::logic_error(error_messeg_routing_setting + "\"bus_wait_time\""s);
+		}
+		int bus_wait_time = it_bus_wait_time->second.AsInt();
+		if (!(bus_wait_time >= 1 && bus_wait_time <= 1000)) {
+			throw std::invalid_argument("Bus_wait_time must be in range [1, 1000]"s);
+		}
+		rs.bus_wait_time = bus_wait_time;
+
+		auto it_bus_velocity = dict.find("bus_velocity"s);
+		if (it_bus_velocity == dict.end()) {
+			throw std::logic_error(error_messeg_routing_setting + "\"bus_velocity\""s);
+		}
+		int bus_velocity = it_bus_velocity->second.AsInt();
+		if (!(bus_velocity >= 1 && bus_velocity <= 1000)) {
+			throw std::invalid_argument("Bus_velocity must be in range [1, 1000]"s);
+		}
+		rs.bus_velocity = bus_velocity;
+
+		return rs;
+	}
+
+	//-------------------------------------------------------------------
 	//----------------------Function Stat Info---------------------------
 	//-------------------------------------------------------------------
-	const json::Document JsonReader::StatInfo(const transport_catalogue::TransportCatalogue& catalogue, const RequestHandler& rh) const {
+	const json::Document JsonReader::StatInfo(const transport_catalogue::TransportCatalogue& catalogue, 
+		const RequestHandler& rh,
+		const graph::TransportRouter<double>& tr) const {
 		auto stat_requests = json_.find(stat_key);
 		if (stat_requests == json_.end()) {
 			throw std::logic_error("The dictionary is missing a key\"" + stat_key + "\"");
@@ -379,6 +418,69 @@ namespace json_reader {
 
 			if (it_type->second.AsString() == "Map") {
 				stat_info.push_back(StatMapInfo(it_id->second.AsInt(), rh));
+				continue;
+			}
+
+			if (it_type->second.AsString() == "Route") {
+				auto it_from = map.find("from");
+				if (it_from == map.end()) {
+					throw std::logic_error("Missing \"from\" field in \"stat_request\"");
+				}
+
+				auto it_to = map.find("to");
+				if (it_to == map.end()) {
+					throw std::logic_error("Missing \"to\" field in \"stat_request\"");
+				}
+
+				auto route_result = tr.FindRoute(it_from->second.AsString(), it_to->second.AsString());
+				json::Dict result;
+
+				if (route_result.has_value()) {  // Проверяем, что маршрут найден
+					// Создаем массив для элементов маршрута
+					json::Array items;
+
+					for (const auto& item : route_result->items) {
+						if (item.type == graph::TransportRouter<double>::RouteItem::Type::WAIT) {
+							// Элемент "Wait"
+							items.push_back(json::Dict{
+								{"type", "Wait"},
+								{"stop_name", item.stop_name},
+								{"time", item.time}
+								});
+						}
+						else {
+							// Элемент "Bus"
+							items.push_back(json::Dict{
+								{"type", "Bus"},
+								{"bus", item.bus_name},
+								{"span_count", item.span_count},
+								{"time", item.time}
+								});
+						}
+					}
+
+					// Формируем финальный ответ
+					result = json::Builder{}
+						.StartDict()
+						.Key("request_id").Value(it_id->second.AsInt())
+						.Key("total_time").Value(route_result->total_time)
+						.Key("items").Value(items)
+						.EndDict()
+						.Build()
+						.AsDict();
+				}
+				else {
+					// Если маршрут не найден
+					result = json::Builder{}
+						.StartDict()
+						.Key("request_id").Value(it_id->second.AsInt())
+						.Key("error_message").Value("not found")
+						.EndDict()
+						.Build()
+						.AsDict();
+				}
+
+				stat_info.push_back(result);
 				continue;
 			}
 
@@ -454,6 +556,7 @@ namespace json_reader {
 
 		return result;
 	}
+
 
 	const json::Dict JsonReader::StatMapInfo(int id, const RequestHandler& rh) const {
 		json::Dict result;

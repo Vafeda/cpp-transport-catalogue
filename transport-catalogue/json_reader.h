@@ -1,6 +1,7 @@
 #pragma once
 #include "json.h"
 #include "transport_catalogue.h"
+#include "transport_router.h"
 #include "map_renderer.h"
 #include "json_builder.h"
 #include <sstream>
@@ -13,6 +14,7 @@ namespace json_reader {
 
 	inline const std::string base_key = "base_requests";
 	inline const std::string render_key = "render_settings";
+	inline const std::string routing_key = "routing_settings";
 	inline const std::string stat_key = "stat_requests";
 
 
@@ -22,8 +24,8 @@ namespace json_reader {
 			: input_json_(json::Load(input))
 			, json_(input_json_.GetRoot().AsDict())
 		{
-			if (json_.size() != 3) {
-				throw std::logic_error("JsonReader: The dictionary has not 3 elements");
+			if (json_.size() != 4) {
+				throw std::logic_error("JsonReader: The dictionary has not 4 elements");
 			}
 
 			if (json_.find(base_key) == json_.end()) {
@@ -34,6 +36,10 @@ namespace json_reader {
 				throw std::logic_error("JsonReader: The dictionary is missing a key\"" + render_key + "\"");
 			}
 
+			if (json_.find(routing_key) == json_.end()) {
+				throw std::logic_error("JsonReader: The dictionary is missing a key\"" + routing_key + "\"");
+			}
+
 			if (json_.find(stat_key) == json_.end()) {
 				throw std::logic_error("JsonReader: The dictionary is missing a key\"" + stat_key + "\"");
 			}
@@ -41,7 +47,8 @@ namespace json_reader {
 
 		transport_catalogue::TransportCatalogue ApplyBaseRequests() const;
 		map_renderer::RenderSettings ApplyRenderSettings() const;
-		const json::Document StatInfo(const transport_catalogue::TransportCatalogue& catalogue, const RequestHandler& rh) const;
+		graph::RouteSetting ApplyRoutingSetting() const;
+		const json::Document StatInfo(const transport_catalogue::TransportCatalogue& catalogue, const RequestHandler& rh, const graph::TransportRouter<double>& tr) const;
 
 	private:
 		void ProcessStopRequests(const json::Array& array, transport_catalogue::TransportCatalogue& tc) const;

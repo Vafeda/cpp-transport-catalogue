@@ -13,7 +13,6 @@ public:
     svg::Document RenderMap() const;
 
 private:
-
     const transport_catalogue::TransportCatalogue& tc_;
     const map_renderer::RenderSettings& rs_;
 };

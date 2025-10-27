@@ -27,6 +27,7 @@ namespace transport_catalogue {
 		const std::set<std::string_view>& GetStopStationInfo(std::string_view id) const;
 
 		const std::deque<Bus>& GetAllRoute() const;
+		const std::deque<StopStation>& GetAllStops() const;
 
 	private:
 		struct StopPairHash {
